@@ -1,0 +1,37 @@
+[project]
+name = "spinup"
+version = "0.2.0"
+description = "Teaching tools for introducing people to deep RL."
+authors = [
+    {name = "Joshua Achiam", email = "jachiam@example.com"},
+]
+requires-python = ">=3.10"
+dependencies = [
+    "cloudpickle",
+    "gymnasium[box2d,classic_control]",
+    "joblib",
+    "matplotlib",
+    "mpi4py",
+    "numpy",
+    "pandas",
+    "pytest",
+    "psutil",
+    "scipy",
+    "seaborn",
+    "torch",
+    "tqdm",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = []
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["spinup"]

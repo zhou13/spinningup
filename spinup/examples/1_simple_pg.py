@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.distributions.categorical import Categorical
 from torch.optim import Adam
 import numpy as np
-import gym
+import gymnasium as gym
 from gym.spaces import Discrete, Box
 
 def mlp(sizes, activation=nn.Tanh, output_activation=nn.Identity):
@@ -13,13 +13,6 @@ def mlp(sizes, activation=nn.Tanh, output_activation=nn.Identity):
         act = activation if j < len(sizes)-2 else output_activation
         layers += [nn.Linear(sizes[j], sizes[j+1]), act()]
     return nn.Sequential(*layers)
-
-def reward_to_go(rews):
-    n = len(rews)
-    rtgs = np.zeros_like(rews)
-    for i in reversed(range(n)):
-        rtgs[i] = rews[i] + (rtgs[i+1] if i+1 < n else 0)
-    return rtgs
 
 def train(env_name='CartPole-v0', hidden_sizes=[32], lr=1e-2, 
           epochs=50, batch_size=5000, render=False):
@@ -59,7 +52,7 @@ def train(env_name='CartPole-v0', hidden_sizes=[32], lr=1e-2,
         # make some empty lists for logging.
         batch_obs = []          # for observations
         batch_acts = []         # for actions
-        batch_weights = []      # for reward-to-go weighting in policy gradient
+        batch_weights = []      # for R(tau) weighting in policy gradient
         batch_rets = []         # for measuring episode returns
         batch_lens = []         # for measuring episode lengths
 
@@ -95,8 +88,8 @@ def train(env_name='CartPole-v0', hidden_sizes=[32], lr=1e-2,
                 batch_rets.append(ep_ret)
                 batch_lens.append(ep_len)
 
-                # the weight for each logprob(a_t|s_t) is reward-to-go from t
-                batch_weights += list(reward_to_go(ep_rews))
+                # the weight for each logprob(a|s) is R(tau)
+                batch_weights += [ep_ret] * ep_len
 
                 # reset episode-specific variables
                 obs, done, ep_rews = env.reset(), False, []
@@ -131,5 +124,5 @@ if __name__ == '__main__':
     parser.add_argument('--render', action='store_true')
     parser.add_argument('--lr', type=float, default=1e-2)
     args = parser.parse_args()
-    print('\nUsing reward-to-go formulation of policy gradient.\n')
+    print('\nUsing simplest formulation of policy gradient.\n')
     train(env_name=args.env_name, render=args.render, lr=args.lr)
